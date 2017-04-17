@@ -1,0 +1,88 @@
+An App to show some simple aggregation operators
+========================================================
+author: Julio Waissman Vilanova
+date: April 17, 2017
+autosize: true
+
+What is this?
+========================================================
+
+Aggregation and fusion of information are basic concerns for all kinds of knowledge based systems. From a general point of view we can say that aggregation has for purpose the simultaneous use of different pieces of information in order to come to a conclusion or a decision. 
+
+This site aims to show and review the differences of 4 aggregation operators, which represent very different points of view. For this we assume that a group of 4 experts in an area are asked to evaluate different alternatives with a value between 0 and 1.
+
+- The [app](https://juliowaissman.shinyapps.io/simple-aggregation/) is hosted in [shinyapps.io](http://www.shinyapps.io/)
+- The [source code](https://github.com/juliowaissman/aggregation-simplicia) is hosted in [github](http://github.com)
+
+
+Aggregation operators presented
+========================================================
+
+- A mutually reinforcing operator: 
+$$
+F(x_1, \ldots, x_n) = \frac{\prod_{i=1}^n x_i}{\prod_{i=1}^n x_i + \prod_{i=1}^n 1 - x_i}
+$$
+- An averaging operator: 
+$$
+F(x_1, \ldots, x_n) = (1/n)\sum_{i=1}^n x_i 
+$$
+- A disjunctive operator: 
+$$
+F(x_1, \ldots, x_n) = \prod_{i=1}^n x_i
+$$
+- A conjunctive operator: 
+$$
+F(x_1, \ldots, x_n) = 1 - \prod_{i=1}^n 1 - x_i
+$$
+
+
+A example of alternatives
+========================================================
+
+The data frame represents a serie of alternatives evaluated by 4 experts
+
+```{r, echo=FALSE}
+library(knitr)
+
+a <- data.frame(
+  id = 1:7,
+  description = c("A good alternative for all but one",
+                  "A bad alternative for all but one",
+                  "A bareley aceptable alternative",
+                  "An alternative good enough",
+                  "An alternative width to polarized opinions",
+                  "An alternative without consensus",
+                  "An indiferent alternative"),
+  expert.1 = c(0.7, 0.2, 0.4, 0.6, 0.9, 0.2, 0.5),
+  expert.2 = c(0.8, 0.3, 0.3, 0.5, 0.8, 0.4, 0.5),
+  expert.3 = c(0.9, 0.3, 0.6, 0.7, 0.2, 0.6, 0.5),
+  expert.4 = c(0.1, 0.9, 0.4, 0.6, 0.1, 0.8, 0.5)
+)
+a$description <- as.character(a$description)
+
+knitr::kable(a)
+```
+
+It is assumed that all the expert has the same importance
+
+Results
+========================================================
+
+```{r, echo=FALSE, fig.width=10, fig.height=5}
+library(reshape2)
+library(ggplot2)
+
+s <- a[,1:2]
+s$triple.pi <- apply(a[,3:6], 1, function (x) prod(x)/(prod(x) + prod(1 - x)))
+s$average <- apply(a[,3:6], 1, mean)
+s$product <- apply(a[,3:6], 1, prod)
+s$ord.sum <- apply(a[,3:6], 1, function (x) 1 - prod(1 - x))
+
+d <- melt(s, id.vars = 1:2)
+ggplot(data = d, aes(x=variable, y=value, color=description)) +
+  geom_point(size=7) +
+  xlab("Aggregation operator") + 
+  ggtitle("Results of aggregation for the simple examples")
+```
+
+You can play with your own alternatives in the [app](https://juliowaissman.shinyapps.io/simple-aggregation/)!
